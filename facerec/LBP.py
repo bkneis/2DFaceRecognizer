@@ -52,7 +52,6 @@ class LBP:
                 transformed_img.itemset((x, y), res)
 
         if debug:
-            cv2.imwrite('image.png', img)
-            cv2.imwrite('thresholded_image.png', transformed_img)
+            cv2.imwrite('debug/thresholded_image.png', transformed_img)
 
         return np.histogram(img.flatten(), 256, [0, 256]) # histogram and bins
