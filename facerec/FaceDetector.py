@@ -24,7 +24,7 @@ class FaceDetector:
         try:
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         except cv2.error:
-            print('Cannot convert the image to grayscale, the image probably doesnt have 3 channels or is already gray')
+            # Cannot convert the image to grayscale, the image probably doesnt have 3 channels or is already gray
             gray = img
 
         try:
