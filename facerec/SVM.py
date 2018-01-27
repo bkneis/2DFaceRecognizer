@@ -15,9 +15,9 @@ class SVM(StatModel):
     """wrapper for OpenCV SimpleVectorMachine algorithm"""
     def __init__(self):
         self.model = cv2.ml.SVM_create()
-        # self.model.setType(cv2.ml.SVM_C_SVC)
-        # self.model.setKernel(cv2.ml.SVM_LINEAR)
-        # self.model.setC(1)
+        self.model.setType(cv2.ml.SVM_C_SVC)
+        self.model.setKernel(cv2.ml.SVM_LINEAR)
+        self.model.setC(1)
         # svm.setDegree(0.0)
         # svm.setGamma(0.0)
         # svm.setCoef0(0.0)
@@ -26,7 +26,7 @@ class SVM(StatModel):
         # svm.setClassWeights(None)
 
     def train(self, samples, responses):
-        self.model.trainAuto(samples, cv2.ml.ROW_SAMPLE, responses)
+        self.model.train(samples, cv2.ml.ROW_SAMPLE, responses)
 
     def predict(self, samples):
         return self.model.predict(samples)
