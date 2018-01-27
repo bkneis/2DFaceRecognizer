@@ -1,0 +1,2 @@
+class ImageNotProvidedException(Exception):
+    pass
