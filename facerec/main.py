@@ -3,7 +3,7 @@ import numpy as np
 
 from LBP import LBP
 from FaceDetector import FaceDetector
-from SVM import SVM
+from classifiers import SVM, KNearest
 
 
 def main():
@@ -15,12 +15,13 @@ def main():
             '/home/arthur/Downloads/lfw/Zhu_Rongji/Zhu_Rongji_0001.jpg']
 
     # Get photos of subject to train to ensure the same class label is assigned to
-    me = ['/home/arthur/face1.png', '/home/arthur/face2.png', '/home/arthur/face3.png']
+    me = ['/home/arthur/face1.png'] # , '/home/arthur/face2.png', '/home/arthur/face3.png'
 
     # Create algorithm objects
     lbp = LBP()
     detector = FaceDetector()
     svm = SVM()
+    knn = KNearest()
 
     # Array to store resulting LBP histograms
     hists = []
@@ -57,15 +58,22 @@ def main():
 
     # Train svm
     svm.train(samples, labels)
+    knn.train(samples, labels)
 
     # Test the svm
     test = cv2.imread('/home/arthur/pic2.jpg', 0)
+    #test = cv2.imread('/home/arthur/Downloads/lfw/Georgina_Papin/Georgina_Papin_0001.jpg', 0)
     face = detector.detect(test)
     face = detector.crop_face(test, face)
     hist, bins = lbp.run(face, False)
     test_sample = np.array([hist], dtype=np.float32)
-    retval, results = svm.predict(test_sample)
-    print(retval, results)
+
+    # Predict with svm
+    class_id = svm.predict(test_sample)
+    print('SVM predicted class label ', class_id)
+
+    # Predict with knn
+    knn.predict(test_sample)
 
 
 if __name__ == '__main__':
