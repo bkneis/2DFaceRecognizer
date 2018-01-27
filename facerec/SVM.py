@@ -29,8 +29,4 @@ class SVM(StatModel):
         self.model.trainAuto(samples, cv2.ml.ROW_SAMPLE, responses)
 
     def predict(self, samples):
-        retval, results = self.model.predict(samples)
-        print(retval)
-        print(results)
-        #return np.float32([self.model.predict(s) for s in samples])
-        # return np.float32([self.model.predict(s) for s in samples])
+        return self.model.predict(samples)
