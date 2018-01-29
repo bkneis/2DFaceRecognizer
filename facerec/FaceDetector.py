@@ -24,13 +24,7 @@ class FaceDetector:
             raise ImageNotProvidedException
 
         try:
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        except cv2.error:
-            # Cannot convert the image to grayscale, the image probably doesnt have 3 channels or is already gray
-            gray = img
-
-        try:
-            faces = self.face_cascade.detectMultiScale(gray, 1.3, 5)  # todo add min and max size as filter
+            faces = self.face_cascade.detectMultiScale(img, 1.3, 5)  # todo add min and max size as filter
         except cv2.error as err:
             print('Detect multi scale failed', err)
             faces = []
