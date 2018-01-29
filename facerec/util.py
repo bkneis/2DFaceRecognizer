@@ -43,7 +43,9 @@ def draw_face(dist, class_id, frame, face):
     if class_id == 69 and dist < 3000000:
         color = (0, 255, 0)
 
-    cv2.rectangle(frame, (x, y + h), (x + w, y), color, 3)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(frame, "Bryan Kneis", (x, y - 10), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.rectangle(frame, (x, y + h), (x + w, y), color, 2)
 
 
 def write_fps(start, end, frame):
