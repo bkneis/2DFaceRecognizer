@@ -2,23 +2,10 @@ import cv2
 import numpy as np
 import time
 
+import util
 from LBP import LBP
 from FaceDetector import FaceDetector
 from classifiers import SVM, KNearest
-
-
-# def timeit(method):
-#
-#     def timed(*args, **kw):
-#         ts = time.time()
-#         result = method(*args, **kw)
-#         te = time.time()
-#
-#         print '%r (%r, %r) %2.2f sec' % \
-#               (method.__name__, args, kw, te-ts)
-#         return result
-#
-#     return timed
 
 
 def main():
@@ -72,55 +59,68 @@ def main():
     samples = np.array(hists, dtype=np.float32)
     labels = np.array(labels, dtype=np.int)
 
-    print(samples)
-    print(labels)
-
     # Train classifiers
     svm.train(samples, labels)
     knn.train(samples, labels)
 
-    # Test the svm
-    test = cv2.imread('/home/arthur/image.png', 0)
-    ts = time.time()
-    face = detector.detect(test)
-    face = detector.crop_face(test, face)
-    hist, bins = lbp.run(face, False)
-    test_sample = np.array([hist], dtype=np.float32)
+    # # Test the svm
+    # test = cv2.imread('/home/arthur/image.png', 0)
+    # face = detector.detect(test)
+    # face = detector.crop_face(test, face)
+    # hist, bins = lbp.run(face, False)
+    # test_sample = np.array([hist], dtype=np.float32)
+    #
+    # # Predict with svm
+    # class_id = svm.predict(test_sample)
+    # te = time.time()
+    # # print('prediction took %2.2f sec', te - ts)
+    # print('SVM predicted class label ', class_id)
+    #
+    # # Predict with knn
+    # knn.predict(test_sample)
 
-    # Predict with svm
-    class_id = svm.predict(test_sample)
-    te = time.time()
-    # print('prediction took %2.2f sec', te - ts)
-    print('SVM predicted class label ', class_id)
-
-    # Predict with knn
-    knn.predict(test_sample)
-
+    # Establish connection to camera
     cap = cv2.VideoCapture(0)
-    while (True):
+
+    # Continuously grab the next frame from the camera
+    while cap.isOpened():
         # Capture frame-by-frame
         ret, frame = cap.read()
-        # Our operations on the frame come here
+
+        # Start timer for performance logging
+        start = time.time()
+
+        # Convert frame to gray scale for face detector
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
+        # Detect a face in the frame and crop the image
         face_coords = detector.detect(gray)
         face = detector.crop_face(gray, face_coords)
-        if face is not None:
-            x, y, w, h = face_coords
-            # cv2.imwrite('debug/face.png', face)
-            hist, bins = lbp.run(face, False)
-            test_sample = np.array([hist], dtype=np.float32)
-            # class_id = svm.predict(test_sample)
-            # print('SVM predicted class label ', class_id)
-            dist, class_id = knn.predict(test_sample)
-            color = (0, 0, 255)
-            if class_id == 69 and dist < 3000000:
-                color = (0, 255, 0)
 
-            cv2.rectangle(frame, (x, y + h), (x + w, y), color, 3)
+        # Check we have detected a face
+        if face is not None:
+            # Apply LBP operator to get feature descriptor
+            hist, bins = lbp.run(face, False)
+
+            # Convert the LBP descriptor to numpy array for opencv classifiers
+            test_sample = np.array([hist], dtype=np.float32)
+
+            # Get the class of id of the closest neighbour and its distance
+            dist, class_id = knn.predict(test_sample)
+
+            # Draw the face if found
+            util.draw_face(dist, class_id, frame, face_coords)
+
+        # Processing finished
+        end = time.time()
+
+        # Write the fps to the video
+        util.write_fps(start, end, frame)
 
         # Display the resulting frame
         cv2.imshow('frame', frame)
+
+        # Check if we should stop the application
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
