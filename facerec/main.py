@@ -1,6 +1,7 @@
 import cv2
-import numpy as np
 import time
+import argparse
+import numpy as np
 
 import util
 from LBP import LBP
@@ -90,6 +91,11 @@ def main():
         # Start timer for performance logging
         start = time.time()
 
+        # Down sample the image to make processing faster
+        # frame = cv2.pyrDown(frame)
+        # size = (int(frame.shape[0] * 0.25), int(frame.shape[1] * 0.25))
+        # frame = cv2.resize(frame, size, interpolation=cv2.INTER_CUBIC)
+
         # Convert frame to gray scale for face detector
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
@@ -107,9 +113,10 @@ def main():
 
             # Get the class of id of the closest neighbour and its distance
             dist, class_id = knn.predict(test_sample)
-
+            print('class', dist, class_id)
             # Draw the face if found
             util.draw_face(dist, class_id, frame, face_coords)
+            # util.segment_face(frame)
 
         # Processing finished
         end = time.time()
