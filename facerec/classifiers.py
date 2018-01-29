@@ -44,3 +44,4 @@ class KNearest(StatModel):
     def predict(self, samples):
         _retval, results, _neigh_resp, _dists = self.model.findNearest(samples, self.k)
         print('knn', _retval, results, _neigh_resp, _dists)
+        return int(_dists[0]), int(_neigh_resp[0])
