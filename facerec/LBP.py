@@ -5,13 +5,12 @@ import cv2
 class LBP:
 
     def _thresholded(self, center, pixels):
-        out = []
-        for a in pixels:
+        res = 0
+        weights = [1, 2, 4, 8, 16, 32, 64, 128]
+        for idx, a in enumerate(pixels):
             if a >= center:
-                out.append(1)
-            else:
-                out.append(0)
-        return out
+                res += weights[idx]
+        return res
 
     def _get_pixel(self, l, idx, idy, default=0):
         try:
@@ -21,12 +20,11 @@ class LBP:
 
     def run(self, img, debug=False):
 
+        # Resize image to be same size as classified faces
+        img = cv2.resize(img, (120, 120), interpolation=cv2.INTER_CUBIC)
+
         # Copy the image to transform
         transformed_img = img.copy()
-
-        # Down sample the image to make processing faster
-        img = cv2.resize(img, (200, 200), interpolation=cv2.INTER_CUBIC)
-        transformed_img = cv2.resize(transformed_img, (200, 200), interpolation=cv2.INTER_CUBIC)
 
         # Iterate over each pixel in image
         for x in range(0, len(img)):
@@ -41,17 +39,12 @@ class LBP:
                 bottom_right = self._get_pixel(img, x + 1, y + 1)
                 bottom_down = self._get_pixel(img, x, y + 1)
 
-                values = self._thresholded(center, [top_left, top_up, top_right, right, bottom_right,
-                                                    bottom_down, bottom_left, left])
-
-                weights = [1, 2, 4, 8, 16, 32, 64, 128]
-                res = 0
-                for a in range(0, len(values)):
-                    res += weights[a] * values[a]
+                res = self._thresholded(center, [top_left, top_up, top_right, right, bottom_right,
+                                                 bottom_down, bottom_left, left])
 
                 transformed_img.itemset((x, y), res)
 
         if debug:
             cv2.imwrite('debug/thresholded_image.png', transformed_img)
 
-        return np.histogram(img.flatten(), 256, [0, 256]) # histogram and bins
+        return np.histogram(img.flatten(), 256, [0, 256])  # histogram and bins
