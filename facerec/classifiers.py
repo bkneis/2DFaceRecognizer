@@ -1,4 +1,3 @@
-import numpy as np
 import cv2
 
 
@@ -19,12 +18,12 @@ class SVM(StatModel):
         self.model.setKernel(cv2.ml.SVM_RBF)
         self.model.setC(C)
         self.model.setGamma(gamma)
-        # svm.setDegree(0.0)
-        # svm.setGamma(0.0)
-        # svm.setCoef0(0.0)
-        # svm.setNu(0.0)
-        # svm.setP(0.0)
-        # svm.setClassWeights(None)
+        # self.model.setDegree(0.0)
+        # self.model.setGamma(0.0)
+        # self.model.setCoef0(0.0)
+        # self.model.setNu(0.0)
+        # self.model.setP(0.0)
+        # self.model.setClassWeights(None)
 
     def train(self, samples, responses):
         self.model.train(samples, cv2.ml.ROW_SAMPLE, responses)
@@ -34,6 +33,7 @@ class SVM(StatModel):
 
 
 class KNearest(StatModel):
+    """wrapper for OpenCV KNN algorithm"""
     def __init__(self, k=1):
         self.k = k
         self.model = cv2.ml.KNearest_create()
@@ -43,5 +43,4 @@ class KNearest(StatModel):
 
     def predict(self, samples):
         _retval, results, _neigh_resp, _dists = self.model.findNearest(samples, self.k)
-        print('knn', _retval, results, _neigh_resp, _dists)
         return int(_dists[0]), int(_neigh_resp[0])
