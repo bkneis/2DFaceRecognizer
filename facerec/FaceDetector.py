@@ -14,6 +14,8 @@ class FaceDetector:
         self.face_cascade = cv2.CascadeClassifier(data_path)
 
     def crop_face(self, img, face):
+        if face is None:
+            return None
         x, y, w, h = face
         return img[y:(y+h), x:(x+w)]
 
