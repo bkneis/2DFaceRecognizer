@@ -30,7 +30,7 @@ def main():
             '/home/arthur/Downloads/lfw_funneled/Zhu_Rongji/Zhu_Rongji_0001.jpg']
 
     # Get photos of subject to train to ensure the same class label is assigned to
-    me = ['/home/arthur/image.png']  # , '/home/arthur/face2.png', '/home/arthur/face3.png'
+    me = ['/home/arthur/me.jpg']  # , '/home/arthur/face2.png', '/home/arthur/face3.png'
 
     # Create algorithm objects
     lbp = LBP()
@@ -80,7 +80,7 @@ def main():
     knn.train(samples, labels)
 
     # Test the svm
-    test = cv2.imread('/home/arthur/face2.png', 0)
+    test = cv2.imread('/home/arthur/image.png', 0)
     ts = time.time()
     face = detector.detect(test)
     face = detector.crop_face(test, face)
@@ -114,7 +114,7 @@ def main():
             # print('SVM predicted class label ', class_id)
             dist, class_id = knn.predict(test_sample)
             color = (0, 0, 255)
-            if class_id == 69 and dist < 5000000:
+            if class_id == 69 and dist < 3000000:
                 color = (0, 255, 0)
 
             cv2.rectangle(frame, (x, y + h), (x + w, y), color, 3)
