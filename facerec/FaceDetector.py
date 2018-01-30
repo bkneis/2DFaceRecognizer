@@ -24,7 +24,7 @@ class FaceDetector:
             raise ImageNotProvidedException
 
         try:
-            faces = self.face_cascade.detectMultiScale(img, 1.3, 5)  # todo add min and max size as filter
+            faces = self.face_cascade.detectMultiScale(img, 1.3, 5)
         except cv2.error as err:
             print('Detect multi scale failed', err)
             faces = []
