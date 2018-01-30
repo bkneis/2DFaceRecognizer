@@ -9,8 +9,7 @@ def timeit(method):
         result = method(*args, **kw)
         te = time.time()
 
-        print('%r (%r, %r) %2.2f sec' %
-              method.__name__, args, kw, te-ts)
+        print('%r (%r, %r) %2.2f sec' % method.__name__, args, kw, te-ts)
         return result
 
     return timed
@@ -22,9 +21,9 @@ def draw_face(dist, class_id, frame, face):
     name = "Unknown"
     print('Distance : ', dist)
     max = 1000000
-    if class_id == 69 and dist < 300000:
+    if class_id == 69 and dist < 350000:
         color = (0, 255, 0)
-        print('Distance : ', dist)
+        # print('Distance : ', dist)
         confidence = 100 - (dist / max)
         name = "Bryan Kneis - %2.2f" % confidence
         # cv2.imwrite('/home/arthur/latest.png', frame)
