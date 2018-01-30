@@ -9,29 +9,11 @@ from FaceDetector import FaceDetector
 from classifiers import SVM, KNearest
 
 
-def main():
-
-    # Get subjects to train the svm on
-    imgs = ['/home/arthur/Downloads/lfw_funneled/Gian_Marco/Gian_Marco_0001.jpg',
-            '/home/arthur/Downloads/lfw_funneled/Micky_Ward/Micky_Ward_0001.jpg',
-            '/home/arthur/Downloads/lfw_funneled/Ziwang_Xu/Ziwang_Xu_0001.jpg',
-            '/home/arthur/Downloads/lfw_funneled/Zhu_Rongji/Zhu_Rongji_0001.jpg']
-
-    # Get photos of subject to train to ensure the same class label is assigned to
-    me = ['/home/arthur/me.jpg']  # , '/home/arthur/face2.png', '/home/arthur/face3.png'
-
-    # Create algorithm objects
-    lbp = LBP()
-    detector = FaceDetector()
-    svm = SVM()
-    knn = KNearest()
-
-    # Array to store resulting LBP histograms
+def load_subjects(subjects, detector, lbp):
+    # Loop over each subject and perform LBP operator and add to histogram and labels
     hists = []
     labels = []
-
-    # Loop over each subject and perform LBP operator and add to histogram and labels
-    for idx, img in enumerate(imgs):
+    for idx, img in enumerate(subjects):
         image = cv2.imread(img, 0)
         face = detector.detect(image)
         if face is not None:
@@ -44,19 +26,48 @@ def main():
         else:
             print('Warn no face detector')
 
-    # Do the same as above for target with fixed class label (69)
-    for idx, img in enumerate(me):
-        image = cv2.imread(img, 0)
-        face = detector.detect(image)
-        if face is not None:
-            print('Adding myself to models')
-            face = detector.crop_face(image, face)
-            face = cv2.resize(face, (120, 120), interpolation=cv2.INTER_CUBIC)
-            hist, bins = lbp.run(face, False)
-            hists.append(hist)
-            labels.append(69)
-        else:
-            print('Warn no face detector')
+    image = cv2.imread('/home/arthur/me.jpg', 0)
+    face = detector.detect(image)
+    if face is not None:
+        print('Adding myself to models')
+        face = detector.crop_face(image, face)
+        face = cv2.resize(face, (120, 120), interpolation=cv2.INTER_CUBIC)
+        hist, bins = lbp.run(face, False)
+        hists.append(hist)
+        labels.append(69)
+    else:
+        print('Warn no face detector')
+
+    return hists, labels
+
+
+def classify_snapshot(img, detector, lbp, classifier):
+    test = cv2.imread(img, 0)
+    face = detector.detect(test)
+    face = detector.crop_face(test, face)
+    hist, bins = lbp.run(face, False)
+    test_sample = np.array([hist], dtype=np.float32)
+    # Predict with svm
+    class_id = classifier.predict(test_sample)
+    print('Classifier predicted class label ', class_id)
+
+
+def main():
+
+    # Get subjects to train the svm on
+    imgs = ['/home/arthur/Downloads/lfw_funneled/Gian_Marco/Gian_Marco_0001.jpg',
+            '/home/arthur/Downloads/lfw_funneled/Micky_Ward/Micky_Ward_0001.jpg',
+            '/home/arthur/Downloads/lfw_funneled/Ziwang_Xu/Ziwang_Xu_0001.jpg',
+            '/home/arthur/Downloads/lfw_funneled/Zhu_Rongji/Zhu_Rongji_0001.jpg']
+
+    # Create algorithm objects
+    lbp = LBP()
+    detector = FaceDetector()
+    svm = SVM()
+    knn = KNearest()
+
+    # Load the subjects and extract their features
+    hists, labels = load_subjects(imgs, detector, lbp)
 
     # Transform to np arrays
     samples = np.array(hists, dtype=np.float32)
@@ -65,22 +76,6 @@ def main():
     # Train classifiers
     svm.train(samples, labels)
     knn.train(samples, labels)
-
-    # # Test the svm
-    # test = cv2.imread('/home/arthur/image.png', 0)
-    # face = detector.detect(test)
-    # face = detector.crop_face(test, face)
-    # hist, bins = lbp.run(face, False)
-    # test_sample = np.array([hist], dtype=np.float32)
-    #
-    # # Predict with svm
-    # class_id = svm.predict(test_sample)
-    # te = time.time()
-    # # print('prediction took %2.2f sec', te - ts)
-    # print('SVM predicted class label ', class_id)
-    #
-    # # Predict with knn
-    # knn.predict(test_sample)
 
     # Establish connection to camera
     cap = cv2.VideoCapture(0)
