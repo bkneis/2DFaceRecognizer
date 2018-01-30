@@ -4,7 +4,7 @@ import cv2
 
 class LBP:
 
-    def _thresholded(self, center, pixels):
+    def _encode(self, center, pixels):
         res = 0
         weights = [1, 2, 4, 8, 16, 32, 64, 128]
         for idx, a in enumerate(pixels):
@@ -18,6 +18,17 @@ class LBP:
         except IndexError:
             return default
 
+    def _get_neighbourhood(self, img, x, y):
+        tl = self._get_pixel(img, x - 1, y - 1)
+        tu = self._get_pixel(img, x, y - 1)
+        tr = self._get_pixel(img, x + 1, y - 1)
+        r = self._get_pixel(img, x + 1, y)
+        l = self._get_pixel(img, x - 1, y)
+        bl = self._get_pixel(img, x - 1, y + 1)
+        br = self._get_pixel(img, x + 1, y + 1)
+        bd = self._get_pixel(img, x, y + 1)
+        return tl, tu, tr, r, l, bl, br, bd
+
     def run(self, img, debug=False):
 
         # Resize image to be same size as classified faces
@@ -29,22 +40,18 @@ class LBP:
         # Iterate over each pixel in image
         for x in range(0, len(img)):
             for y in range(0, len(img[0])):
+                # Get the center pixel to encode
                 center = img[x, y]
-                top_left = self._get_pixel(img, x - 1, y - 1)
-                top_up = self._get_pixel(img, x, y - 1)
-                top_right = self._get_pixel(img, x + 1, y - 1)
-                right = self._get_pixel(img, x + 1, y)
-                left = self._get_pixel(img, x - 1, y)
-                bottom_left = self._get_pixel(img, x - 1, y + 1)
-                bottom_right = self._get_pixel(img, x + 1, y + 1)
-                bottom_down = self._get_pixel(img, x, y + 1)
+                # Get the neighbouring pixels
+                neighbourhood = self._get_neighbourhood(img, x, y)
+                # Apply the weighted LBP operator
+                pattern = self._encode(center, neighbourhood)
+                # Set the LBP value for the pixel
+                transformed_img.itemset((x, y), pattern)
 
-                res = self._thresholded(center, [top_left, top_up, top_right, right, bottom_right,
-                                                 bottom_down, bottom_left, left])
-
-                transformed_img.itemset((x, y), res)
-
+        # Investigate the image when debugging
         if debug:
             cv2.imwrite('debug/thresholded_image.png', transformed_img)
 
-        return np.histogram(img.flatten(), 256, [0, 256])  # histogram and bins
+        # Return binned histogram of image
+        return np.histogram(img.flatten(), 256, [0, 256])
