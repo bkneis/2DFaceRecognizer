@@ -19,11 +19,14 @@ def timeit(method):
 def draw_face(dist, class_id, frame, face):
     x, y, w, h = face
     color = (0, 0, 255)
+    name = "Unknown"
     if class_id == 69 and dist < 3000000:
         color = (0, 255, 0)
+        name = "Bryan Kneis"
+        # cv2.imwrite('/home/arthur/latest.png', frame)
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(frame, "Bryan Kneis", (x, y - 10), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
+    cv2.putText(frame, name, (x, y - 10), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
     cv2.rectangle(frame, (x, y + h), (x + w, y), color, 2)
 
 
