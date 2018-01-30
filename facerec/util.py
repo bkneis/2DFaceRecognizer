@@ -21,7 +21,7 @@ def draw_face(dist, class_id, frame, face):
     color = (0, 0, 255)
     name = "Unknown"
     max = 1000000
-    if class_id == 69 and dist < 180000:
+    if class_id == 69 and dist < 200000:
         color = (0, 255, 0)
         print('Distance : ', dist)
         confidence = 100 - (dist / max)
