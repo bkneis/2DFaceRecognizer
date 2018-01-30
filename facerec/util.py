@@ -20,9 +20,12 @@ def draw_face(dist, class_id, frame, face):
     x, y, w, h = face
     color = (0, 0, 255)
     name = "Unknown"
-    if class_id == 69 and dist < 3000000:
+    max = 1000000
+    if class_id == 69 and dist < 180000:
         color = (0, 255, 0)
-        name = "Bryan Kneis"
+        print('Distance : ', dist)
+        confidence = 100 - (dist / max)
+        name = "Bryan Kneis - %2.2f" % confidence
         # cv2.imwrite('/home/arthur/latest.png', frame)
 
     font = cv2.FONT_HERSHEY_SIMPLEX
