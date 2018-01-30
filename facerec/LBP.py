@@ -54,4 +54,4 @@ class LBP:
             cv2.imwrite('debug/thresholded_image.png', transformed_img)
 
         # Return binned histogram of image
-        return np.histogram(img.flatten(), 256, [0, 256])
+        return np.histogram(transformed_img.flatten(), 256, [0, 256])
