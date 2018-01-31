@@ -1,6 +1,8 @@
 import time
 import cv2
 
+import config
+
 
 def timeit(method):
 
@@ -19,14 +21,16 @@ def draw_face(dist, class_id, frame, face):
     x, y, w, h = face
     color = (0, 0, 255)
     name = "Unknown"
-    print('Distance : ', dist)
-    max = 1000000
-    if class_id == 69 and dist < 350000:
+    max_dist = 1000000
+
+    if config.DEBUG:
+        print('Distance : ', dist)
+        cv2.imwrite('/home/arthur/latest.png', frame)
+
+    if class_id == 69 and dist < config.THRESHOLD:
         color = (0, 255, 0)
-        # print('Distance : ', dist)
-        confidence = 100 - (dist / max)
+        confidence = 100 - (dist / max_dist)
         name = "Bryan Kneis - %2.2f" % confidence
-        # cv2.imwrite('/home/arthur/latest.png', frame)
 
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(frame, name, (x, y - 10), font, 0.5, (255, 255, 255), 1, cv2.LINE_AA)
