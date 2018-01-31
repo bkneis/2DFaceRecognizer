@@ -42,29 +42,27 @@ def load_subjects(subjects, detector, lbp):
 
 
 def classify_snapshot(img, detector, lbp, classifier):
-    test = cv2.imread(img, 0)
-    face = detector.detect(test)
-    face = detector.crop_face(test, face)
+    face = detector.detect(img)
+    face = detector.crop_face(img, face)
     hist, bins = lbp.run(face, False)
     test_sample = np.array([hist], dtype=np.float32)
-    # Predict with svm
-    class_id = classifier.predict(test_sample)
-    print('Classifier predicted class label ', class_id)
+    dist, class_id = classifier.predict(test_sample)
+    print('Subject was ', class_id)
 
 
-def main():
-
-    # Get subjects to train the svm on
-    imgs = ['/home/arthur/Downloads/lfw_funneled/Gian_Marco/Gian_Marco_0001.jpg',
-            '/home/arthur/Downloads/lfw_funneled/Micky_Ward/Micky_Ward_0001.jpg',
-            '/home/arthur/Downloads/lfw_funneled/Ziwang_Xu/Ziwang_Xu_0001.jpg',
-            '/home/arthur/Downloads/lfw_funneled/Zhu_Rongji/Zhu_Rongji_0001.jpg']
+def main(args):
 
     # Create algorithm objects
     lbp = LBP()
     detector = FaceDetector()
     svm = SVM()
     knn = KNearest()
+
+    # Get subjects to train the svm on
+    imgs = ['/home/arthur/Downloads/lfw_funneled/Gian_Marco/Gian_Marco_0001.jpg',
+            '/home/arthur/Downloads/lfw_funneled/Micky_Ward/Micky_Ward_0001.jpg',
+            '/home/arthur/Downloads/lfw_funneled/Ziwang_Xu/Ziwang_Xu_0001.jpg',
+            '/home/arthur/Downloads/lfw_funneled/Zhu_Rongji/Zhu_Rongji_0001.jpg']
 
     # Load the subjects and extract their features
     hists, labels = load_subjects(imgs, detector, lbp)
@@ -76,6 +74,18 @@ def main():
     # Train classifiers
     svm.train(samples, labels)
     knn.train(samples, labels)
+
+    # Check which mode the app is running in (image vs. video)
+    if args.image is not None:
+        # Read the image from the file path provided
+        img = cv2.imread(args.image, 0)
+        # Check the image exists
+        if img is not None:
+            # Run face recognition algorithm
+            classify_snapshot(img, detector, lbp, knn)
+        else:
+            print('The image could not be found...')
+        return
 
     # Establish connection to camera
     cap = cv2.VideoCapture(0)
@@ -129,4 +139,7 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='2d Face Recognition with Local Binary Patterns')
+    parser.add_argument('--image', nargs='?', const=1, type=str)
+    args = parser.parse_args()
+    main(args)
