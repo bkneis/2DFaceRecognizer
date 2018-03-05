@@ -34,7 +34,7 @@ class SVM(StatModel):
 
 class KNearest(StatModel):
     """wrapper for OpenCV KNN algorithm"""
-    def __init__(self, k=1):
+    def __init__(self, k=3):
         self.k = k
         self.model = cv2.ml.KNearest_create()
 
@@ -43,4 +43,10 @@ class KNearest(StatModel):
 
     def predict(self, samples):
         _retval, results, _neigh_resp, _dists = self.model.findNearest(samples, self.k)
-        return int(_dists[0]), int(_neigh_resp[0])
+        # print('knn')
+        # print(_retval, results, _neigh_resp, _dists)
+        # print('-------------')
+        return None, results[0][0]
+        # if self.k > 1:
+        #     return int(_dists[0][0]), int(_neigh_resp[0][0])
+        # return int(_dists[0]), int(_neigh_resp[0])
