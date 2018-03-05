@@ -140,6 +140,6 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='2d Face Recognition with Local Binary Patterns')
-    parser.add_argument('--image', nargs='?', const=1, type=str, description='File path of image to classify')
+    parser.add_argument('--image', nargs='?', const=1, type=str)
     _args = parser.parse_args()
     main(_args)
