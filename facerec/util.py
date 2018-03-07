@@ -23,6 +23,8 @@ def draw_face(dist, class_id, frame, face):
     name = "Unknown"
     max_dist = 1000000
 
+    print('Distance : ', dist)
+
     if config.DEBUG:
         print('Distance : ', dist)
         cv2.imwrite('/home/arthur/latest.png', frame)
