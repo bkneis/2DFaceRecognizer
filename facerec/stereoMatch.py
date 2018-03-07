@@ -107,6 +107,8 @@ def reconstruct(imgL, imgR):
     out_face = points[mask]
     out_colors = colors[mask]
 
+    print('Standard deviation', np.std(out_face))
+
     write_ply('test2.ply', out_face, out_colors)
 
 
