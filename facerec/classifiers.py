@@ -46,7 +46,7 @@ class KNearest(StatModel):
         # print('knn')
         # print(_retval, results, _neigh_resp, _dists)
         # print('-------------')
-        return None, results[0][0]
-        # if self.k > 1:
-        #     return int(_dists[0][0]), int(_neigh_resp[0][0])
-        # return int(_dists[0]), int(_neigh_resp[0])
+        # return None, results[0][0]
+        if self.k > 1:
+            return int(_dists[0][0]), int(_neigh_resp[0][0])
+        return int(_dists[0]), int(_neigh_resp[0])
