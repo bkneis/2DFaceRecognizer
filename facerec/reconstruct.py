@@ -48,7 +48,8 @@ def main(leftpath, rightpath):
     disp = stereo.compute(imgL, imgR).astype(np.float32) / 16.0
 
     h, w = imgL.shape[:2]
-    f = 0.8 * w  # guess for focal length
+    f = 1600  # 0.8 * w  # guess for focal length
+    print('f', f)
     Q = np.float32([[1, 0, 0, -0.5 * w],
                     [0, -1, 0, 0.5 * h],  # turn points 180 deg around x-axis,
                     [0, 0, 0, -f],  # so that y-axis looks up
