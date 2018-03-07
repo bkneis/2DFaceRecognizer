@@ -4,7 +4,8 @@ import argparse
 import numpy as np
 
 import util
-from LBP import LBP
+from stereoMatch import reconstruct
+from LBP import LBP, LocalBinaryPatterns
 from FaceDetector import FaceDetector
 from classifiers import SVM, KNearest
 
@@ -26,7 +27,7 @@ def load_subjects(subjects, detector, lbp):
         else:
             print('Warn no face detector')
 
-    image = cv2.imread('/home/arthur/me.jpg', 0)
+    image = cv2.imread('/home/arthur/me2.jpg', 0)
     face = detector.detect(image)
     if face is not None:
         print('Adding myself to models')
@@ -54,6 +55,7 @@ def main(args):
 
     # Create algorithm objects
     lbp = LBP()
+    # lbp = LocalBinaryPatterns(8, 3)
     detector = FaceDetector()
     svm = SVM()
     knn = KNearest()
@@ -90,6 +92,9 @@ def main(args):
     # Establish connection to camera
     cap = cv2.VideoCapture(0)
 
+    # Establish connection to second camera
+    r_cam = cv2.VideoCapture(1)
+
     # Continuously grab the next frame from the camera
     while cap.isOpened():
         # Capture frame-by-frame
@@ -107,6 +112,12 @@ def main(args):
 
         # Check we have detected a face
         if face is not None:
+            # Take a photo with the right camera
+            rret, rframe = r_cam.read()
+
+            # Reconstruct 3D face from 2D images
+            reconstruct(frame, rframe)
+
             # Apply LBP operator to get feature descriptor
             hist, bins = lbp.run(face, False)
 
