@@ -75,8 +75,8 @@ class LocalBinaryPatterns:
                                  range=(0, self.numPoints + 2))
 
         # normalize the histogram
-        # hist = hist.astype("float")
-        # hist /= (hist.sum() + eps)
+        hist = hist.astype("float")
+        hist /= (hist.sum() + eps)
 
         # return the histogram of Local Binary Patterns
         return hist, None
