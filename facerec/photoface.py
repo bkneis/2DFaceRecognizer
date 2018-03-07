@@ -3,6 +3,7 @@ import os
 import numpy as np
 import math
 import cv2
+from scipy import io
 from plyfile import PlyData
 
 from LBP import LBP, LocalBinaryPatterns
@@ -11,8 +12,8 @@ from classifiers import SVM, KNearest
 # todo test the classifier
 # todo validate on a 80/20 split
 
-lbp = LBP()
-
+# lbp = LBP()
+lbp = LocalBinaryPatterns(8, 3)
 svm = SVM()
 knn = KNearest()
 
@@ -25,45 +26,63 @@ def main(photoface_dir):
     samples = np.array(hists, dtype=np.float32)
     ids = np.array(labels, dtype=np.int)
 
+    # variables = {"labels": ids, "responses": samples}
+    # io.savemat('variables.mat', variables)
+
+    print(ids)
+
     # Train classifiers
     svm.train(samples, ids)
     knn.train(samples, ids)
 
-    # test on a subject
-    depth, gray = get_face('/media/arthur/124A-FB70/faceSample/2008-02-29_08-33-54/face_cropped.ply')
-    hist, bins = lbp.run(depth)
-    g_hist, g_bins = lbp.run(gray)
-    test_sample = np.array([np.concatenate((hist, g_hist))], dtype=np.float32)
-    dist, class_id = knn.predict(test_sample)
-    svm_class_id = svm.predict(test_sample)
-    print('Predicted class is : ', class_id)
-    print('Predicted svm class is ', svm_class_id)
-    print('Actual class is 0')
-    print('================')
+    test_imgs = [
+        '2008-02-29_08-33-54',
+        '2008-02-21_08-19-45',
+        '2008-02-21_08-11-44',
+        '2008-02-15_17-23-58',
+        '2008-05-30_11-00-59'
+    ]
 
-    # test on a subject
-    depth, gray = get_face('/media/arthur/124A-FB70/faceSample/2008-02-21_08-19-45/face_cropped.ply')
-    hist, bins = lbp.run(depth)
-    g_hist, g_bins = lbp.run(gray)
-    test_sample = np.array([np.concatenate((hist, g_hist))], dtype=np.float32)
-    dist, class_id = knn.predict(test_sample)
-    svm_class_id = svm.predict(test_sample)
-    print('Predicted class is : ', class_id)
-    print('Predicted svm class is ', svm_class_id)
-    print('Actual class is 1')
-    print('================')
+    for idx, img_path in enumerate(test_imgs):
+        # test on a subject
+        # print('file /media/arthur/124A-FB70/faceSample/%s/face_cropped.ply' % img_path)
+        depth, gray = get_face('/media/arthur/124A-FB70/faceSample/%s/face_cropped.ply' % img_path)
+        # hist, bins = lbp.run(depth)
+        g_hist, g_bins = lbp.run(gray)
+        # test_sample = np.array([np.concatenate((hist, g_hist))], dtype=np.float32)
+        test_sample = np.array([g_hist], dtype=np.float32)
+        dist, class_id = knn.predict(test_sample)
+        # svm_class_id = svm.predict(test_sample)
+        print('Predicted class is : ', class_id)
+        # print('Predicted svm class is ', svm_class_id)
+        print('Actual class is %s' % idx)
+        print('================')
 
-    # test on a subject
-    depth, gray = get_face('/media/arthur/124A-FB70/faceSample/2008-02-21_08-11-44/face_cropped.ply')
-    hist, bins = lbp.run(depth)
-    g_hist, g_bins = lbp.run(gray)
-    test_sample = np.array([np.concatenate((hist, g_hist))], dtype=np.float32)
-    dist, class_id = knn.predict(test_sample)
-    svm_class_id = svm.predict(test_sample)
-    print('Predicted class is : ', class_id)
-    print('Predicted svm class is ', svm_class_id)
-    print('Actual class is 2')
-    print('================')
+    # # test on a subject
+    # depth, gray = get_face('/media/arthur/124A-FB70/faceSample/2008-02-21_08-19-45/face_cropped.ply')
+    # hist, bins = lbp.run(depth)
+    # # g_hist, g_bins = lbp.run(gray)
+    # # test_sample = np.array([np.concatenate((hist, g_hist))], dtype=np.float32)
+    # test_sample = np.array([hist], dtype=np.float32)
+    # dist, class_id = knn.predict(test_sample)
+    # svm_class_id = svm.predict(test_sample)
+    # print('Predicted class is : ', class_id)
+    # print('Predicted svm class is ', svm_class_id)
+    # print('Actual class is 1')
+    # print('================')
+    #
+    # # test on a subject
+    # depth, gray = get_face('/media/arthur/124A-FB70/faceSample/2008-02-21_08-11-44/face_cropped.ply')
+    # hist, bins = lbp.run(depth)
+    # # g_hist, g_bins = lbp.run(gray)
+    # # test_sample = np.array([np.concatenate((hist, g_hist))], dtype=np.float32)
+    # test_sample = np.array([hist], dtype=np.float32)
+    # dist, class_id = knn.predict(test_sample)
+    # svm_class_id = svm.predict(test_sample)
+    # print('Predicted class is : ', class_id)
+    # print('Predicted svm class is ', svm_class_id)
+    # print('Actual class is 2')
+    # print('================')
 
 
 def traverse(root_dir, func):
@@ -88,7 +107,8 @@ def describe_face(ply_path, idx):
     depth, gray = get_face(ply_path)
     d_hist, d_bins = lbp.run(depth)
     g_hist, g_bins = lbp.run(gray)
-    hists.append(np.concatenate((d_hist, g_hist)))
+    # hists.append(np.concatenate((d_hist, g_hist)))
+    hists.append(g_hist)
     labels.append(idx)
 
 
@@ -109,7 +129,8 @@ def get_face(ply_path):
     rgb = np.dstack((r, g, b))
     # Convert to gray scale
     gray = cv2.cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)
-
+    # import random
+    # cv2.imwrite('img%s.png' % random.randint(0, 100), gray)
     # Return xyz (x,x) and gray scale info (x, x)
     return z.reshape(size, size), gray
 
