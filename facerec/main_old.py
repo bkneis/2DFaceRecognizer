@@ -2,15 +2,12 @@ import cv2
 import time
 import argparse
 import numpy as np
-import PyCapture2
 
 import util
 from stereoMatch import reconstruct
 from LBP import LBP, LocalBinaryPatterns
 from FaceDetector import FaceDetector
 from classifiers import SVM, KNearest
-
-from Camera import Camera, PG_CAMERA_TYPE, CV_CAMERA_TYPE
 
 
 def load_subjects(subjects, detector, lbp):
@@ -93,22 +90,21 @@ def main(args):
         return
 
     # Establish connection to camera
-    l_cam = Camera(PG_CAMERA_TYPE, 0)
+    cap = cv2.VideoCapture(0)
 
     # Establish connection to second camera
-    r_cam = Camera(PG_CAMERA_TYPE, 1)
+    r_cam = cv2.VideoCapture(1)
 
     # Continuously grab the next frame from the camera
-    while True:
+    while cap.isOpened():
         # Capture frame-by-frame
-        frame = l_cam.get_image()
+        ret, frame = cap.read()
 
         # Start timer for performance logging
         start = time.time()
 
         # Convert frame to gray scale for face detector
-        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        gray = frame
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Detect a face in the frame and crop the image
         face_coords = detector.detect(gray)
@@ -117,10 +113,10 @@ def main(args):
         # Check we have detected a face
         if face is not None:
             # Take a photo with the right camera
-            rframe = r_cam.get_image()
+            #rret, rframe = r_cam.read()
 
             # Reconstruct 3D face from 2D images
-            reconstruct(frame, rframe)
+            #reconstruct(frame, rframe)
 
             # Apply LBP operator to get feature descriptor
             hist, bins = lbp.run(face, False)
@@ -133,6 +129,7 @@ def main(args):
 
             # Draw the face if found
             util.draw_face(dist, class_id, frame, face_coords)
+            # util.segment_face(frame)
 
         # Processing finished
         end = time.time()
@@ -148,8 +145,7 @@ def main(args):
             break
 
     # When everything done, release the capture
-    l_cam.cleanup()
-    r_cam.cleanup()
+    cap.release()
     cv2.destroyAllWindows()
 
 
