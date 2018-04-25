@@ -20,11 +20,11 @@ end_header
 
 def write_ply(fn, verts, colors):
     verts = verts.reshape(-1, 3)
-    # colors = colors.reshape(-1, 3)
-    # verts = np.hstack([verts, colors])
+    colors = colors.reshape(-1, 3)
+    verts = np.hstack([verts, colors])
     with open(fn, 'wb') as f:
         f.write((ply_header % dict(vert_num=len(verts))).encode('utf-8'))
-        np.savetxt(f, verts, fmt='%f %f %f ')
+        np.savetxt(f, verts, fmt='%f %f %f %d %d %d')
 
 
 def main():

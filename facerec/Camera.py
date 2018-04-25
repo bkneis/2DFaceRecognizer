@@ -17,7 +17,7 @@ class Camera:
         if strategy == PG_CAMERA_TYPE:
             self.cam = self._create_pt_camera(idx)
         else:
-            self.cam = self._create_pt_camera(idx)
+            self.cam = self._create_cv_camera(idx)
 
     def get_image(self):
         if self.strategy == PG_CAMERA_TYPE:
@@ -48,7 +48,6 @@ class Camera:
 
     def _get_image_cv(self):
         ret, frame = self.cam.read()
-        print('ret', ret)
         return frame
 
     def _create_pt_camera(self, idx):

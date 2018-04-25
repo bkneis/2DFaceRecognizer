@@ -10,7 +10,6 @@ class FaceDetector:
     def __init__(self):
         super().__init__()
         data_path = os.path.join(os.path.dirname(__file__), 'assets/haarcascade_frontalface_default.xml')
-        # todo need to throw cv2.error and allow detectionTask to catch and fail if so
         self.face_cascade = cv2.CascadeClassifier(data_path)
 
     def crop_face(self, img, face):
@@ -24,9 +23,18 @@ class FaceDetector:
             raise ImageNotProvidedException
 
         try:
-            faces = self.face_cascade.detectMultiScale(img, 1.05, 3, minSize=(200, 200))
+            faces = self.face_cascade.detectMultiScale(img, 1.05, 3, minSize=(50, 50))
         except cv2.error as err:
             print('Detect multi scale failed', err)
             faces = []
 
-        return faces[0] if len(faces) else None
+        biggest = faces[0] if len(faces) else None
+        width = 0
+
+        for face in faces:
+            x, y, w, h = face
+            if w > width:
+                width = w
+                biggest = face
+
+        return biggest

@@ -2,47 +2,73 @@ import cv2
 import time
 import argparse
 import numpy as np
+import os
 import PyCapture2
 
 import util
 from stereoMatch import reconstruct
-from LBP import LBP, LocalBinaryPatterns
+from LBP import LBP
 from FaceDetector import FaceDetector
 from classifiers import SVM, KNearest
 
 from Camera import Camera, PG_CAMERA_TYPE, CV_CAMERA_TYPE
 
 
-def load_subjects(subjects, detector, lbp):
-    # Loop over each subject and perform LBP operator and add to histogram and labels
-    hists = []
+flatten = lambda l: [item for sublist in l for item in sublist]
+
+
+def load_subjects(data_folder_path, detector):
+    # ------STEP-1--------
+    # get the directories (one directory for each subject) in data folder
+    dirs = os.listdir(data_folder_path)
+
+    # list to hold all subject faces
+    faces = []
+    # list to hold labels for all subjects
     labels = []
-    for idx, img in enumerate(subjects):
-        image = cv2.imread(img, 0)
-        face = detector.detect(image)
-        if face is not None:
-            face = detector.crop_face(image, face)
-            face = cv2.resize(face, (120, 120), interpolation=cv2.INTER_CUBIC)
-            hist, bins = lbp.run(face, False)
-            hists.append(hist)
-            labels.append(idx)
-            print('Id %s person %s' % (idx, img))
-        else:
-            print('Warn no face detector')
 
-    image = cv2.imread('/home/arthur/me2.jpg', 0)
-    face = detector.detect(image)
-    if face is not None:
-        print('Adding myself to models')
-        face = detector.crop_face(image, face)
-        face = cv2.resize(face, (120, 120), interpolation=cv2.INTER_CUBIC)
-        hist, bins = lbp.run(face, False)
-        hists.append(hist)
-        labels.append(69)
-    else:
-        print('Warn no face detector')
+    # let's go through each directory and read images within it
+    for dname in dirs:
 
-    return hists, labels
+        print('Subject ', dname)
+
+        sdirs = os.listdir(os.path.join(data_folder_path, dname))
+
+        for dir_name in sdirs:
+            print('Session ', dir_name)
+            # ------STEP-2--------
+            # extract label number of subject from dir_name
+            # format of dir name = slabel
+            # , so removing letter 's' from dir_name will give us label
+            label = int(dname)
+
+            # build path of directory containing images for current subject subject
+            # sample subject_dir_path = "training-data/s1"
+            subject_dir_path = data_folder_path + "/" + dname + "/" + dir_name
+
+            image_name = 'image.png'
+
+            # build image path
+            # sample image path = training-data/s1/1.pgm
+            image_path = subject_dir_path + "/" + image_name
+
+            # read image
+            image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+
+            # detect face
+            face_coords = detector.detect(image)
+            face = detector.crop_face(image, face_coords)
+
+            # ------STEP-4--------
+            # for the purpose of this tutorial
+            # we will ignore faces that are not detected
+            if face is not None:
+                # add face to list of faces
+                faces.append(face)
+                # add label for this face
+                labels.append(label)
+
+    return faces, labels
 
 
 def classify_snapshot(img, detector, lbp, classifier):
@@ -57,8 +83,8 @@ def classify_snapshot(img, detector, lbp, classifier):
 def main(args):
 
     # Create algorithm objects
+    # lbp = LBP()
     lbp = LBP()
-    # lbp = LocalBinaryPatterns(8, 3)
     detector = FaceDetector()
     svm = SVM()
     knn = KNearest()
@@ -70,11 +96,18 @@ def main(args):
             '/home/arthur/Downloads/lfw_funneled/Zhu_Rongji/Zhu_Rongji_0001.jpg']
 
     # Load the subjects and extract their features
-    hists, labels = load_subjects(imgs, detector, lbp)
+    hists, labels = load_subjects('/home/arthur/test', detector)
+
+    hists, labels = lbp.run(hists, labels)
 
     # Transform to np arrays
-    samples = np.array(hists, dtype=np.float32)
-    labels = np.array(labels, dtype=np.int)
+    samples = flatten(hists)
+    responses = flatten(labels)
+    samples = np.array(samples, dtype=np.float32)
+    labels = np.array(responses, dtype=np.int)
+
+    print('hists', samples[0].shape)
+    print('labels', responses)
 
     # Train classifiers
     svm.train(samples, labels)
@@ -93,46 +126,65 @@ def main(args):
         return
 
     # Establish connection to camera
-    l_cam = Camera(PG_CAMERA_TYPE, 0)
+    l_cam = Camera(CV_CAMERA_TYPE, 0)
 
     # Establish connection to second camera
-    r_cam = Camera(PG_CAMERA_TYPE, 1)
+    # r_cam = Camera(PG_CAMERA_TYPE, 1)
 
     # Continuously grab the next frame from the camera
     while True:
         # Capture frame-by-frame
+        start = time.time()
         frame = l_cam.get_image()
+        end = time.time()
+        print('Getting pic', end - start)
 
         # Start timer for performance logging
         start = time.time()
 
         # Convert frame to gray scale for face detector
-        # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # try:
+        #     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # except cv2.error:
+        #     gray = frame
         gray = frame
 
+        start = time.time()
         # Detect a face in the frame and crop the image
         face_coords = detector.detect(gray)
         face = detector.crop_face(gray, face_coords)
+        end = time.time()
+        print('detect face', end - start)
 
         # Check we have detected a face
         if face is not None:
             # Take a photo with the right camera
-            rframe = r_cam.get_image()
+            # rframe = r_cam.get_image()
 
             # Reconstruct 3D face from 2D images
-            reconstruct(frame, rframe)
-
+            # reconstruct(frame, rframe)
+            start = time.time()
             # Apply LBP operator to get feature descriptor
-            hist, bins = lbp.run(face, False)
+            hist, bins = lbp.run([face], [4], False)
+            end = time.time()
+            print('feature des', end - start)
 
             # Convert the LBP descriptor to numpy array for opencv classifiers
             test_sample = np.array([hist], dtype=np.float32)
 
             # Get the class of id of the closest neighbour and its distance
-            dist, class_id = knn.predict(test_sample)
+            # class_id = svm.predict(test_sample)
+            # print('SVM class id', class_id)
+            start = time.time()
+            dist, class_id = knn.predict(hist) # test_sample
+            end = time.time()
+            print('Classifying', end - start)
 
+            start = time.time()
             # Draw the face if found
             util.draw_face(dist, class_id, frame, face_coords)
+            end = time.time()
+            print('drawing', end - start)
 
         # Processing finished
         end = time.time()
@@ -149,12 +201,15 @@ def main(args):
 
     # When everything done, release the capture
     l_cam.cleanup()
-    r_cam.cleanup()
+    # r_cam.cleanup()
     cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='2d Face Recognition with Local Binary Patterns')
     parser.add_argument('--image', nargs='?', const=1, type=str)
+    parser.add_argument('--checkLive', nargs='?', const=1, type=bool)
     _args = parser.parse_args()
+    if _args.image is not None and _args.checkLive:
+        print('WARNING: Face liviness can only be checked given 3D information')
     main(_args)

@@ -1,6 +1,7 @@
 import cv2
 import sys
 import numpy as np
+from time import time
 
 from FaceDetector import FaceDetector
 from LBP import LBP
@@ -34,6 +35,8 @@ def main(leftpath, rightpath):
     min_disp = 16
     num_disp = 112 - min_disp
 
+    start = time()
+
     stereo = cv2.StereoSGBM_create(minDisparity=min_disp,
                                    numDisparities=num_disp,
                                    blockSize=5,
@@ -57,11 +60,17 @@ def main(leftpath, rightpath):
 
     points = cv2.reprojectImageTo3D(disp, Q)
 
-    out_points = points  # [mask]
-    out_points = out_points[:, :, 2]
-    print(out_points)
+    mask = disp > disp.min()
+
+    out_points = points[mask]
+    # out_points = out_points[:, :, 2]
+
+    end = time()
+    print('Time taken ', end - start)
+    print('size', out_points.shape)
+    # print(out_points)
     hist, bins = lbp.run(out_points, False)
-    print('hist', hist)
+    # print('hist', hist)
 
 
 if __name__ == "__main__":

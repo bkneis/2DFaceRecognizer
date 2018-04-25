@@ -11,7 +11,7 @@ def timeit(method):
         result = method(*args, **kw)
         te = time.time()
 
-        print('%r (%r, %r) %2.2f sec' % method.__name__, args, kw, te-ts)
+        print('%r (%r, %r) %2.2f sec' % (method.__name__, args, kw, te-ts))
         return result
 
     return timed
@@ -23,7 +23,7 @@ def draw_face(dist, class_id, frame, face):
     name = "Unknown"
     max_dist = 1000000
 
-    print('Distance : ', dist)
+    print('Distance : ', dist, class_id)
 
     if config.DEBUG:
         print('Distance : ', dist)

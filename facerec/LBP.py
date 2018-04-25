@@ -1,9 +1,29 @@
 import numpy as np
 import cv2
-from skimage import feature
 
 
 class LBP:
+
+    def run(self, imgs, labels, debug=False):
+        # Construct the LBPH encoder
+        encoder = cv2.face.createLBPHFaceRecognizer()
+        # Resize the image as the spatial histograms need to be the same size
+        imgs = list(map(lambda img: cv2.resize(img, (120, 120), interpolation=cv2.INTER_CUBIC), imgs))
+        # print('imgs', imgs)
+        # resized_imgs = []
+        # for img in imgs:
+        #     resized_imgs.append(cv2.resize(img, (120, 120), interpolation=cv2.INTER_CUBIC))
+        # Encode the image as a local binary pattern and store in encoder
+        encoder.train(imgs, np.array(labels))
+        # Return the histogram
+        print('Returning one hist', encoder.getHistograms()[0].shape)
+        if len(imgs) > 1:
+            return encoder.getHistograms(), encoder.getLabels()
+        print('Returning one hist', encoder.getHistograms()[0].shape)
+        return encoder.getHistograms()[0], None
+
+
+class LBP_:
 
     def _encode(self, center, pixels):
         res = 0
@@ -55,28 +75,9 @@ class LBP:
             cv2.imwrite('debug/thresholded_image.png', transformed_img)
 
         # Return binned histogram of image
-        return np.histogram(transformed_img.flatten(), 256, [0, 256])
+        hist, bins = np.histogram(transformed_img.flatten(), 256, [0, 256])
+        # hist = hist.astype("float")
+        # hist /= hist.sum()
+        print('hist', hist.shape)
 
-
-class LocalBinaryPatterns:
-    def __init__(self, numPoints, radius):
-        # store the number of points and radius
-        self.numPoints = numPoints
-        self.radius = radius
-
-    def run(self, image, eps=1e-7):
-        # compute the Local Binary Pattern representation
-        # of the image, and then use the LBP representation
-        # to build the histogram of patterns
-        lbp = feature.local_binary_pattern(image, self.numPoints,
-                                           self.radius, method="default")
-        (hist, _) = np.histogram(lbp.ravel(),
-                                 bins=np.arange(0, self.numPoints + 3),
-                                 range=(0, self.numPoints + 2))
-
-        # normalize the histogram
-        hist = hist.astype("float")
-        hist /= (hist.sum() + eps)
-
-        # return the histogram of Local Binary Patterns
-        return hist, None
+        return hist, bins
