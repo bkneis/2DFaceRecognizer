@@ -1,0 +1,1 @@
+python recon.py /home/arthur/stereo_demo/me2/right.png /home/arthur/stereo_demo/me2/left.png me

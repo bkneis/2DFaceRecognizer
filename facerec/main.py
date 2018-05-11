@@ -46,7 +46,7 @@ def load_subjects(data_folder_path, detector):
             # sample subject_dir_path = "training-data/s1"
             subject_dir_path = data_folder_path + "/" + dname + "/" + dir_name
 
-            image_name = 'image.png'
+            image_name = 'average.png'
 
             # build image path
             # sample image path = training-data/s1/1.pgm
@@ -143,11 +143,11 @@ def main(args):
         start = time.time()
 
         # Convert frame to gray scale for face detector
-        # try:
-        #     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        # except cv2.error:
-        #     gray = frame
-        gray = frame
+        try:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        except cv2.error:
+            gray = frame
+        # gray = frame
 
         start = time.time()
         # Detect a face in the frame and crop the image
@@ -177,6 +177,8 @@ def main(args):
             # print('SVM class id', class_id)
             start = time.time()
             dist, class_id = knn.predict(hist) # test_sample
+            print('dist ', dist)
+            print('c;las', class_id)
             end = time.time()
             print('Classifying', end - start)
 

@@ -3,6 +3,8 @@ import os
 import sys
 from FaceDetector import FaceDetector
 
+from exceptions import ImageNotProvidedException
+
 
 def main(rootDir):
     detector = FaceDetector()
@@ -15,8 +17,15 @@ def main(rootDir):
                 for sessionDir in sessionDirs:
                     print('Walking sessions folder at %s' % sessionDir)
                     sessionPath = os.path.join(subjectPath, sessionDir)
+                    check = cv2.imread(sessionPath + '/im0_cropped.bmp')
+                    if check is not None:
+                        continue
                     img = cv2.imread(sessionPath + '/average.png', 0)
-                    face_coords = detector.detect(img)
+                    try:
+                        face_coords = detector.detect(img)
+                    except ImageNotProvidedException:
+                        print('Image not available ', sessionDir)
+                        continue
                     for i in range(4):
                         imgFilePath = sessionPath + '/im%s.bmp' % i
                         imgCroppedFilePath = sessionPath + '/im%s_cropped.bmp' % i

@@ -1,0 +1,1 @@
+python recon.py /home/arthur/stereo_demo/mannequin/right.png /home/arthur/stereo_demo/mannequin/left.png mannequin
